@@ -11,8 +11,16 @@ import SceneKit
 import ARKit
 
 class ViewController: UIViewController, ARSCNViewDelegate {
+    
+    var diceArray = [SCNNode]()
 
     @IBOutlet var sceneView: ARSCNView!
+    
+    @IBAction func rollAgain(_ sender: UIBarButtonItem) {
+        
+        rollAll()
+    }
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,16 +49,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 //        sceneView.scene.rootNode.addChildNode(node)
         
         sceneView.autoenablesDefaultLighting = true
-        
-        
-        
-            
-        
-
-        // Set the scene to the view
-        
-        
     }
+    
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -63,12 +63,14 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.session.run(configuration)
     }
     
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
         // Pause the view's session
         sceneView.session.pause()
     }
+    
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
@@ -87,14 +89,45 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                         x: hitResult.worldTransform.columns.3.x,
                         y: hitResult.worldTransform.columns.3.y + diceNode.boundingSphere.radius,
                         z: hitResult.worldTransform.columns.3.z)
+                    
+                    diceArray.append(diceNode)
+                    
                     sceneView.scene.rootNode.addChildNode(diceNode)
+                    
+                    //add animation to dice
+                   roll(dice: diceNode)
                 }
                          
             }
-            
-           
         }
     }
+    
+    
+    func rollAll() {
+        
+        if !diceArray.isEmpty {
+            for dice in diceArray {
+                roll(dice: dice)
+            }
+        }
+    }
+    
+    
+    func roll(dice: SCNNode) {
+        
+        let randomX = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
+        let randomZ = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
+        dice.runAction(SCNAction.rotateBy(x: CGFloat(randomX * 5),
+                                                                 y: 0,
+                                                                 z: CGFloat(randomZ * 5),
+                                                                    duration: 0.5))
+    }
+    
+    
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        rollAll()
+    }
+    
     
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
         if anchor is ARPlaneAnchor {
